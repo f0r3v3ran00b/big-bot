@@ -19,6 +19,15 @@ app.command("/btc", async ({ command, ack, say }) => {
     }
 });
 
+app.event('app_mention', async ({ event, client }) => {
+    try {
+        say(`Hello, <@${event.user.id}>! 👋. How can I help?`);
+    }
+    catch (error) {
+        console.error(error);
+    }
+});
+
 (async () => {
     const port = 3005
 
