@@ -12,7 +12,7 @@ app.command("/btc", async ({ command, ack, say }) => {
         await ack();
         let resp = await axios.get('https://api.coindesk.com/v1/bpi/currentprice.json')
         btcVal = resp.data.bpi.USD
-        say(`BTC price: ${btcVal.rate} ${btcVal.code}`);
+        say(`BTC price in USD: $${btcVal.rate}`);
     } catch (error) {
         console.log("err")
         console.error(error);
