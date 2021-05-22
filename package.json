@@ -2,19 +2,38 @@
   "name": "big-bot",
   "version": "1.0.0",
   "description": "Slack bot that does a bunch of things",
+  "engines": {
+    "node": "14.x"
+  },
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node index.js",
+    "test": "node test.js"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/f0r3v3ran00b/big-bot.git"
   },
   "keywords": [],
-  "author": "",
+  "author": "f0r3v3an00b",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/f0r3v3ran00b/big-bot/issues"
   },
-  "homepage": "https://github.com/f0r3v3ran00b/big-bot#readme"
+  "homepage": "https://github.com/f0r3v3ran00b/big-bot#readme",
+  "dependencies": {
+    "@slack/bolt": "^3.3.0",
+    "axios": "^0.21.1",
+    "dotenv": "^10.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.7"
+  },
+  "keywords": [
+    "node",
+    "heroku",
+    "express",
+    "slack",
+    "bot"
+  ]
 }
