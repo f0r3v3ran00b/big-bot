@@ -77,10 +77,6 @@ app.command("/hellomodal", async ({ ack, body, client }) => {
     catch (error) {
         console.error(error);
     }
-        console.log(result);
-    } catch (error) {
-        console.error(error);
-    }
 });
 
 
