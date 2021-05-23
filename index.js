@@ -25,26 +25,29 @@ app.message('knock knock', async ({ message, say }) => {
 });
 
 
-app.event('app_mention', async ({ event, client }) => {
+app.event('app_mention', async ({ event, client, say }) => {
+
+/*
     try {
         // Call chat.postMessage with the built-in client
         const result = await client.chat.postMessage({
             channel: `general`,
-            text: `Welcome to the team, <@${event.user.id}>! 🎉 You can introduce yourself in this channel.`
+            text: `👋 How can I help?`
         });
         console.log(result);
     }
     catch (error) {
         console.error(error);
     }
-    /*
+*/
+
     try {
         say(`Hello, <@${event.user.id}>! 👋. How can I help?`);
     }
     catch (error) {
         console.error(error);
     }
-    */
+
 
 });
 
