@@ -2,6 +2,7 @@ const axios = require('axios');
 const { App, ExpressReceiver } = require("@slack/bolt");
 const receiver = new ExpressReceiver({ signingSecret: process.env.SLACK_SIGNING_SECRET });
 const dotenv = require("dotenv")
+const { helloView } = require('./views/hello')
 
 dotenv.config()
 
@@ -19,6 +20,20 @@ app.command("/echo", async ({ command, ack, say }) => {
         console.error(error);
     }
 });
+
+app.command("/hellomodal", async ({ command, ack, say }) => {
+    try {
+        await ack();
+        const result = await client.views.open({
+            trigger_id: body.trigger_id,
+            view: helloView
+        })
+        console.log(result);
+    } catch (error) {
+        console.error(error);
+    }
+});
+
 
 
 app.command("/btc", async ({ command, ack, say }) => {
