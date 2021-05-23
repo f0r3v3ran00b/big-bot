@@ -1,10 +1,14 @@
 const axios = require('axios');
-const { App } = require("@slack/bolt");
-require("dotenv").config();
+const { App, ExpressReceiver } = require("@slack/bolt");
+const receiver = new ExpressReceiver({ signingSecret: process.env.SLACK_SIGNING_SECRET });
+const dotenv = require("dotenv")
+
+dotenv.config()
 
 const app = new App({
     token: process.env.SLACK_BOT_TOKEN,
-    signingSecret: process.env.SLACK_SIGNING_SECRET,
+    //signingSecret: process.env.SLACK_SIGNING_SECRET,
+    receiver
 });
 
 app.command("/btc", async ({ command, ack, say }) => {
@@ -26,29 +30,19 @@ app.message('knock knock', async ({ message, say }) => {
 
 
 app.event('app_mention', async ({ event, client, say }) => {
-
-/*
     try {
-        // Call chat.postMessage with the built-in client
-        const result = await client.chat.postMessage({
-            channel: `general`,
-            text: `👋 How can I help?`
-        });
-        console.log(result);
-    }
-    catch (error) {
-        console.error(error);
-    }
-*/
-
-    try {
-        say(`Hello, <@${event.user.id}>! 👋. How can I help?`);
+        say(`Hello 👋. How can I help?`);
     }
     catch (error) {
         console.error(error);
     }
 
 
+});
+
+receiver.router.post('/secret-page', (req, res) => {
+    let resp = {"greeting": `Yay!`}
+    res.send(resp);
 });
 
 (async () => {
