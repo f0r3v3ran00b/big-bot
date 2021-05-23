@@ -11,6 +11,16 @@ const app = new App({
     receiver
 });
 
+app.command("/echo", async ({ command, ack, say }) => {
+    try {
+        await ack();
+        say(`${command.text}`);
+    } catch (error) {
+        console.error(error);
+    }
+});
+
+
 app.command("/btc", async ({ command, ack, say }) => {
     try {
         await ack();
