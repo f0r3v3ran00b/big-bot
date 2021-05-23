@@ -45,6 +45,12 @@ receiver.router.post('/secret-page', (req, res) => {
     res.send(resp);
 });
 
+receiver.router.get('/', (req, res) => {
+    let resp = {"greeting": `Welcome to the Big Bot home page!`}
+    res.send(resp);
+});
+
+
 (async () => {
     const port = 3005
 
