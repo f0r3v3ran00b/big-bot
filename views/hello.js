@@ -1,8 +1,7 @@
 exports.helloView = {
-
     type: 'modal',
     // View identifier
-    callback_id: 'hello_view_1',
+    callback_id: 'view_1',
     title: {
         type: 'plain_text',
         text: 'Modal title'
@@ -22,11 +21,23 @@ exports.helloView = {
                 },
                 action_id: 'button_abc'
             }
+        },
+        {
+            type: 'input',
+            block_id: 'input_c',
+            label: {
+                type: 'plain_text',
+                text: 'What are your hopes and dreams?'
+            },
+            element: {
+                type: 'plain_text_input',
+                action_id: 'dreamy_input',
+                multiline: true
+            }
         }
     ],
-    cancel: {
+    submit: {
         type: 'plain_text',
-        text: 'Cancel'
+        text: 'Submit'
     }
-
 }
