@@ -21,7 +21,7 @@ app.command("/echo", async ({ command, ack, say }) => {
     }
 });
 
-app.command("/hellomodal", async ({ ack, client }) => {
+app.command("/hellomodal", async ({ ack, body, client }) => {
     try {
         await ack();
         const result = await client.views.open({
