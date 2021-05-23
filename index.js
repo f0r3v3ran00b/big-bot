@@ -19,13 +19,33 @@ app.command("/btc", async ({ command, ack, say }) => {
     }
 });
 
+
+app.message('knock knock', async ({ message, say }) => {
+    await say(`_Who's there?_`);
+});
+
+
 app.event('app_mention', async ({ event, client }) => {
+    try {
+        // Call chat.postMessage with the built-in client
+        const result = await client.chat.postMessage({
+            channel: welcomeChannelId,
+            text: `Welcome to the team, <@${event.user.id}>! 🎉 You can introduce yourself in this channel.`
+        });
+        console.log(result);
+    }
+    catch (error) {
+        console.error(error);
+    }
+    /*
     try {
         say(`Hello, <@${event.user.id}>! 👋. How can I help?`);
     }
     catch (error) {
         console.error(error);
     }
+    */
+
 });
 
 (async () => {
