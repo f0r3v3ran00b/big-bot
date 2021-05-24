@@ -69,10 +69,12 @@ app.view('hello_view', async ({ack, body, view, client, say}) => {
     }
 })
 
-app.action('button_abc', async ({body, ack, say}) => {
+app.action('button_abc', async ({ body, ack, say }) => {
+    // Acknowledge the action
     await ack();
-    await say(`<@${body.user.id}> clicked the button!`)
-})
+    console.log(`body: \n${JSON.stringify(body)}`)
+    await say(`<@${body.user.id}> clicked the button`);
+});
 
 
 
