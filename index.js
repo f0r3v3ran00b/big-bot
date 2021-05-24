@@ -75,7 +75,12 @@ app.action('button_abc', async (context) => {
         console.log(`context:\n ${JSON.stringify(context)}`)
         await context.ack();
         console.log(`body: \n${JSON.stringify(context.body)}`)
-        await context.respond(`<@${context.body.user.id}> clicked the button`);
+        const privateMetadata = JSON.parse(context.body.view.private_metadata);
+        await app.client.chat.postMessage({
+            token: context.context.botToken,
+            channel: context.body.user.id,
+            text: 'Thanks!'
+        })
     } catch(error) {
         console.error(error)
     }
