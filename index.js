@@ -83,8 +83,7 @@ app.command("/btc", async ({ command, ack, say }) => {
     }
 });
 
-app.message('wt', async ({ message, say, ack }) => {
-    await ack();
+app.message('wt', async ({ message, say }) => {
     const data = {
         name: 'Sanjay',
         weight: 74
