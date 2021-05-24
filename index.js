@@ -86,6 +86,15 @@ app.command("/btc", async ({ command, ack, say }) => {
 
 app.message('knock knock', async ({ message, say }) => {
     await say(`_Who's there?_`);
+    const data = {
+        name: 'Sanjay',
+        age: 18,
+        quote: 'Of all sad things of mouth and pen...'
+    };
+
+// Add a new document in collection "cities" with ID 'LA'
+    const res = await db.collection('people').doc('sanjay').set(data);
+    console.log(`Quote should have been added: ${res}`)
 });
 
 
