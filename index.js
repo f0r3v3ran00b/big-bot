@@ -88,6 +88,7 @@ app.message('wt', async ({ message, say }) => {
         name: 'Sanjay',
         weight: 74
     };
+    console.log(`Full message: ${message.text}`)
 
 // Add a new document in collection "cities" with ID 'LA'
     const res = await db.collection('health_test').add(data);
