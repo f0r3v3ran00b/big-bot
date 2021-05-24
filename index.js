@@ -40,8 +40,13 @@ app.command("/hellomodal", async ({ ack, body, client }) => {
 
 app.view('hello_view', async ({ack, body, view, client, say}) => {
     try {
+
         await ack();
-        say(`Thank you!`)
+        const user = body['user']['id'];
+        await client.chat.postMessage({
+            channel: user,
+            text: `Thank you!`
+        });
     } catch(err) {
         console.error(err)
     }
