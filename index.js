@@ -83,6 +83,18 @@ app.command("/btc", async ({ command, ack, say }) => {
     }
 });
 
+app.message('wt', async ({ message, say, ack }) => {
+    await ack();
+    const data = {
+        name: 'Sanjay',
+        weight: 74
+    };
+
+// Add a new document in collection "cities" with ID 'LA'
+    const res = await db.collection('health_test').add(data);
+    console.log(`Quote should have been added: ${res.id}`)
+});
+
 
 app.message('knock knock', async ({ message, say }) => {
     await say(`_Who's there?_`);
