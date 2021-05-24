@@ -45,7 +45,7 @@ app.view('hello_view', async ({ack, body, view, client, say}) => {
         console.log(JSON.stringify(view))
         const user = body['user']['id'];
         console.log(JSON.stringify(body))
-        const val = view['state']['values']['input_c']['dreamy_input'];
+        const val = view['state']['values']['input_c']['dreamy_input']['value'];
         await client.chat.postMessage({
             channel: user,
             text: `Thank you!`,
