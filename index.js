@@ -69,11 +69,16 @@ app.view('hello_view', async ({ack, body, view, client, say}) => {
     }
 })
 
-app.action('button_abc', async ({ body, ack, say }) => {
+app.action('button_abc', async (context) => {
     // Acknowledge the action
-    await ack();
-    console.log(`body: \n${JSON.stringify(body)}`)
-    await say(`<@${body.user.id}> clicked the button`);
+    try{
+        console.log(`context:\n ${JSON.stringify(context)}`)
+        await context.ack();
+        console.log(`body: \n${JSON.stringify(context.body)}`)
+        await context.respond(`<@${context.body.user.id}> clicked the button`);
+    } catch(error) {
+        console.error(error)
+    }
 });
 
 
