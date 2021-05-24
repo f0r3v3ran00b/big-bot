@@ -15,6 +15,7 @@ admin.initializeApp({
 });
 
 const db = admin.firestore();
+console.log(`Firebase initialised...`)
 
 dotenv.config()
 
