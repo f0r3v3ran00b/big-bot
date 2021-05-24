@@ -38,6 +38,15 @@ app.command("/hellomodal", async ({ ack, body, client }) => {
     }
 });
 
+app.view('hello_view', async ({ack, body, view, client, say}) => {
+    try {
+        await ack();
+        say(`Thank you!`)
+    } catch(err) {
+        console.error(err)
+    }
+})
+
 
 
 app.command("/btc", async ({ command, ack, say }) => {

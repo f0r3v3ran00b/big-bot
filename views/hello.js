@@ -1,7 +1,7 @@
 exports.helloView = {
     type: 'modal',
     // View identifier
-    callback_id: 'view_1',
+    callback_id: 'hello_view',
     title: {
         type: 'plain_text',
         text: 'Modal title'
