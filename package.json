@@ -14,7 +14,13 @@
     "type": "git",
     "url": "git+https://github.com/f0r3v3ran00b/big-bot.git"
   },
-  "keywords": [],
+  "keywords": [
+    "node",
+    "heroku",
+    "express",
+    "slack",
+    "bot"
+  ],
   "author": "f0r3v3an00b",
   "license": "ISC",
   "bugs": {
@@ -24,16 +30,10 @@
   "dependencies": {
     "@slack/bolt": "^3.3.0",
     "axios": "^0.21.1",
-    "dotenv": "^10.0.0"
+    "dotenv": "^10.0.0",
+    "firebase-admin": "^9.8.0"
   },
   "devDependencies": {
     "nodemon": "^2.0.7"
-  },
-  "keywords": [
-    "node",
-    "heroku",
-    "express",
-    "slack",
-    "bot"
-  ]
+  }
 }

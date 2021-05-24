@@ -4,6 +4,18 @@ const receiver = new ExpressReceiver({ signingSecret: process.env.SLACK_SIGNING_
 const dotenv = require("dotenv")
 const { helloView } = require('./views/hello')
 
+const admin = require('firebase-admin');
+
+const firebaseServiceAccount = JSON.parse(process.env.FIREBASE_SVC_ACCOUNT)
+
+//const serviceAccount = require('./path/to/serviceAccountKey.json');
+
+admin.initializeApp({
+    credential: admin.credential.cert(firebaseServiceAccount)
+});
+
+const db = admin.firestore();
+
 dotenv.config()
 
 const app = new App({
