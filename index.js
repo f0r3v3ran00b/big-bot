@@ -69,14 +69,14 @@ app.view('hello_view', async ({ack, body, view, client, say}) => {
     }
 })
 
+/*
+Handle button click on the hellomodal
+ */
 app.action('button_abc', async (context) => {
     // Acknowledge the action
     try{
-        //console.log(`context:\n ${JSON.stringify(context)}`)
         await context.ack();
-        //console.log(`body: \n${JSON.stringify(context.body)}`)
-        //const privateMetadata = JSON.parse(context.body.view.private_metadata);
-        await app.client.chat.postMessage({
+        await app.client.chat.postMessage({ // Can't use 'say' or 'respond' for button clicks from modals?
             token: context.context.botToken,
             channel: context.body.user.id,
             text: 'Thanks!'
