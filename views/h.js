@@ -7,7 +7,7 @@ exports.hView = {
         text: 'Modal title'
     },
     blocks: [
-        {
+        /*{
             type: 'section',
             text: {
                 type: 'mrkdwn',
@@ -21,7 +21,7 @@ exports.hView = {
                 },
                 action_id: 'button_abc'
             }
-        },
+        },*/
         {
             type: 'input',
             block_id: 'input_c',
