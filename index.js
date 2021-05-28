@@ -54,7 +54,7 @@ app.command("/hellomodal", async ({ ack, body, client }) => {
 
 app.command("/h", async ({ ack, body, client }) => {
     try {
-        console.log(JSON.stringify(hoView))
+        console.log(JSON.stringify(hView))
         await ack();
         const result = await client.views.open({
             // Pass a valid trigger_id within 3 seconds of receiving it
