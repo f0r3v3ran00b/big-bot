@@ -3,6 +3,7 @@ const { App, ExpressReceiver } = require("@slack/bolt");
 const receiver = new ExpressReceiver({ signingSecret: process.env.SLACK_SIGNING_SECRET });
 const dotenv = require("dotenv")
 const { helloView } = require('./views/hello')
+const { hView } = require('./views/h')
 
 const admin = require('firebase-admin');
 
@@ -50,6 +51,24 @@ app.command("/hellomodal", async ({ ack, body, client }) => {
         console.error(error);
     }
 });
+
+app.command("/h", async ({ ack, body, client }) => {
+    try {
+        console.log(JSON.stringify(hoView))
+        await ack();
+        const result = await client.views.open({
+            // Pass a valid trigger_id within 3 seconds of receiving it
+            trigger_id: body.trigger_id,
+            // View payload
+            view: hView
+        });
+        console.log(result);
+    }
+    catch (error) {
+        console.error(error);
+    }
+});
+
 
 app.view('hello_view', async ({ack, body, view, client, say}) => {
     try {
