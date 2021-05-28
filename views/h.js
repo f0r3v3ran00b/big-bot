@@ -143,24 +143,6 @@ exports.hView = {
         {
             "type": "input",
             "element": {
-                "type": "timepicker",
-                "initial_time": "13:37",
-                "placeholder": {
-                    "type": "plain_text",
-                    "text": "Select time",
-                    "emoji": true
-                },
-                "action_id": "timepicker-action"
-            },
-            "label": {
-                "type": "plain_text",
-                "text": "Time",
-                "emoji": true
-            }
-        },
-        {
-            "type": "input",
-            "element": {
                 "type": "multi_users_select",
                 "placeholder": {
                     "type": "plain_text",
