@@ -100,10 +100,16 @@ app.view('h_view', async ({ack, body, view, client, say}) => {
         console.log(`User with email: ${userEmail} submitted the handoff form...`)
         const advisorsTagged = _getAdvisorsTagged(body);
 
-        const leadToCreate = _getLeadDetailsFromBody(body)
+        const leadToCreate = _getLeadDetailsFromBody(body);
+
         //console.log(_js(body))
         const sfRepo = new SFRepo();
         let leadId = await sfRepo.createLead(leadToCreate);
+        let user = await sfRepo.getSFUserFromEmail(userEmail);
+        console.log(`Found user with id: ${user.Id}`)
+        const taskToCreate = _getTaskDetailsFromBody(leadId, user.Id);
+        let taskId = await sfRepo.createTask(taskToCreate);
+        console.log(`Task created: ${taskId}`)
 
         console.log(`user info: ${_js(userInfo)}`)
 
@@ -228,4 +234,18 @@ function _getUserInfoForPersonWhoInvokedTheSlashCommand(body) {
 
 function _getAdvisorsTagged(body) {
     return body['view']['state']['values']['blockid-users']['users-select-action']['selected_users'];
+}
+
+function _getTaskDetailsFromBody(leadId, advisorToAssignTo) {
+    let taskToCreate = {
+        WhoId: leadId,
+        subject: `LiveChat HandBall`,
+        Category__c: `Call Back`,
+        Sub_Category__c: `Call Back Arranged`,
+        OwnerId: advisorToAssignTo,
+        Description: `Test Notes`
+    }
+
+    return taskToCreate;
+
 }

@@ -27,6 +27,35 @@ class SFRepo {
             console.log(`Lead creation error: ${error}`);
         }
     }
+
+    async createTask(task) {
+        try {
+            await this.login();
+            console.log(`Going to create task: ${JSON.stringify(task)}`)
+            let createTaskResult = await this.conn.sobject("Task").create(task);
+            console.log("Created task with record id : " + createTaskResult.id);
+            return createTaskResult.id
+        } catch(error) {
+            console.log(`Task creation error: ${error}`);
+        }
+    }
+
+    async getSFUserFromEmail(email) {
+        try {
+            await this.login();
+            console.log(`Searching for user by email: ${email}`)
+            //let user = await this.conn.query(`SELECT Id, username FROM User where email in ['${email}']`);
+            let users = await this.conn.sobject('User')
+                .find({
+                    email: email
+                }, ['Id, username']);
+            console.log(`User is: ${JSON.stringify(users[0])}`);
+
+            return users[0];
+        } catch(error) {
+            console.log(`User query error: ${error}`);
+        }
+    }
 }
 
 exports.SFRepo = SFRepo
