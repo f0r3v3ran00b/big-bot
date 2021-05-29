@@ -90,28 +90,30 @@ app.command("/btc", async ({ command, ack, say }) => {
 
 app.view('h_view', async ({ack, body, view, client, say}) => {
     try {
+        const user = body['user']['id'];
         //console.log(`h_view submission called...`)
         await ack();
+        const userInfo = await client.users.info({user: user})
+        const userEmail = userInfo.user.profile.email;
+        const advisorsTagged = _getAdvisorsTagged(body);
 
         //console.log(_js(view))
-        const user = body['user']['id'];
-        const mobilePhone = body['view']['state']['values']['blockid-mobile']['mobile-input-action']['value'];
-        const email = body['view']['state']['values']['blockid-email']['email-input-action']['value'];
-        const firstName = body['view']['state']['values']['blockid-fname']['fname-input-action']['value'];
-        const lastName = 'unknownatexampledotcom';
-        const leadSource = 'Manual';
-        const lead_Sub_Source__c = 'Livechat';
 
-        const leadToCreate = {mobilePhone, email, firstName, leadSource, lead_Sub_Source__c, lastName}
-        console.log(`Will create: ${_js(leadToCreate)}`)
+        const leadToCreate = _getLeadDetailsFromBody(body)
         console.log(_js(body))
         const sfRepo = new SFRepo();
         await sfRepo.createLead(leadToCreate);
 
-        await client.chat.postMessage({
-            channel: user,
-            text: `Thank you!`
-        });
+        console.log(`user info: ${_js(userInfo)}`)
+
+        advisorsTagged.forEach((advisorTagged) => {
+            client.chat.postMessage({
+                channel: `general`,
+                link_names: 1,
+                text: `<@${advisorTagged}>, you have been tagged :tada:`
+            });
+        })
+
     } catch(err) {
         console.error(err)
     }
@@ -203,4 +205,25 @@ function _getOptions() {
     program.parse(process.argv);
 
     return program.opts();
+}
+
+function _getLeadDetailsFromBody(body) {
+
+    const mobilePhone = body['view']['state']['values']['blockid-mobile']['mobile-input-action']['value'];
+    const email = body['view']['state']['values']['blockid-email']['email-input-action']['value'];
+    const firstName = body['view']['state']['values']['blockid-fname']['fname-input-action']['value'];
+    const lastName = 'unknownatexampledotcom';
+    const leadSource = 'Manual';
+    const lead_Sub_Source__c = 'Livechat';
+
+    return {mobilePhone, email, firstName, leadSource, lead_Sub_Source__c, lastName}
+
+}
+
+function _getUserInfoForPersonWhoInvokedTheSlashCommand(body) {
+    const userId = body['user']['id'];
+}
+
+function _getAdvisorsTagged(body) {
+    return body['view']['state']['values']['blockid-users']['users-select-action']['selected_users'];
 }
