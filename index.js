@@ -98,29 +98,53 @@ app.view('h_view', async ({ack, body, view, client, say}) => {
         const userInfo = await client.users.info({user: userWhoSubmittedForm})
         const userEmail = userInfo.user.profile.email;
         console.log(`User with email: ${userEmail} submitted the handoff form...`)
-        const advisorsTagged = _getAdvisorsTagged(body);
+        const advisorsTaggedIds = _getAdvisorsTagged(body);
+        const taggedAdvisorInfo = await client.users.info({user: advisorsTaggedIds[0]})
+        const taggedAdvisorEmail = taggedAdvisorInfo.user.profile.email;
 
         const leadToCreate = _getLeadDetailsFromBody(body);
 
         //console.log(_js(body))
         const sfRepo = new SFRepo();
         let leadId = await sfRepo.createLead(leadToCreate);
-        let user = await sfRepo.getSFUserFromEmail(userEmail);
+        let user = await sfRepo.getSFUserFromEmail(taggedAdvisorEmail);
         console.log(`Found user with id: ${user.Id}`)
+
         const taskToCreate = _getTaskDetailsFromBody(leadId, user.Id);
         let taskId = await sfRepo.createTask(taskToCreate);
         console.log(`Task created: ${taskId}`)
 
         console.log(`user info: ${_js(userInfo)}`)
+        await client.chat.postMessage({
+            channel: `${applicationProperties.slackChannelForCreateLeadReplies}`,
+            link_names: 1,
+            text: `<@${advisorsTaggedIds[0]}>, you have been tagged :tada: A lead with id: ${leadId} has been created!`
+        });
 
-        advisorsTagged.forEach((advisorTagged) => {
-            client.chat.postMessage({
-                channel: `${applicationProperties.slackChannelForCreateLeadReplies}`,
-                link_names: 1,
-                text: `<@${advisorTagged}>, you have been tagged :tada: A lead with id: ${leadId} has been created!`
-            });
+        await client.chat.postMessage({
+            channel: `${advisorsTaggedIds[0]}`,
+            link_names: 1,
+            text: `<@${advisorsTaggedIds[0]}>, you have been tagged :tada: A lead with id: ${leadId} has been created!`
+        });
 
-        })
+        await client.chat.postMessage({
+            channel: `${userWhoSubmittedForm}`,
+            link_names: 1,
+            text: `<@${userWhoSubmittedForm}>, you have created a task for <@${advisorsTaggedIds[0]}> :tada: `
+        });
+
+
+
+        /*
+                advisorsTagged.forEach((advisorTagged) => {
+                    client.chat.postMessage({
+                        channel: `${applicationProperties.slackChannelForCreateLeadReplies}`,
+                        link_names: 1,
+                        text: `<@${advisorTagged}>, you have been tagged :tada: A lead with id: ${leadId} has been created!`
+                    });
+
+                })
+        */
 
     } catch(err) {
         console.error(err)
