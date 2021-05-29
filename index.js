@@ -2,6 +2,8 @@ const { Command } = require('commander');
 const axios = require('axios');
 const admin = require('firebase-admin');
 const { App, ExpressReceiver } = require("@slack/bolt");
+const { SFRepo } = require('./handoff/sf-services')
+
 const receiver = new ExpressReceiver({ signingSecret: process.env.SLACK_SIGNING_SECRET });
 //const express = require('express')
 const dotenv = require("dotenv")
@@ -88,12 +90,24 @@ app.command("/btc", async ({ command, ack, say }) => {
 
 app.view('h_view', async ({ack, body, view, client, say}) => {
     try {
-        console.log(`h_view submission called...`)
+        //console.log(`h_view submission called...`)
         await ack();
 
-        console.log(_js(view))
+        //console.log(_js(view))
         const user = body['user']['id'];
+        const mobilePhone = body['view']['state']['values']['blockid-mobile']['mobile-input-action']['value'];
+        const email = body['view']['state']['values']['blockid-email']['email-input-action']['value'];
+        const firstName = body['view']['state']['values']['blockid-fname']['fname-input-action']['value'];
+        const lastName = 'unknownatexampledotcom';
+        const leadSource = 'Manual';
+        const lead_Sub_Source__c = 'Livechat';
+
+        const leadToCreate = {mobilePhone, email, firstName, leadSource, lead_Sub_Source__c, lastName}
+        console.log(`Will create: ${_js(leadToCreate)}`)
         console.log(_js(body))
+        const sfRepo = new SFRepo();
+        await sfRepo.createLead(leadToCreate);
+
         await client.chat.postMessage({
             channel: user,
             text: `Thank you!`

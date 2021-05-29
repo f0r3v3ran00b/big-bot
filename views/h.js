@@ -23,7 +23,8 @@ exports.hView = {
             "block_id": 'blockid-mobile',
             "element": {
                 "type": "plain_text_input",
-                "action_id": "mobile-input-action"
+                "action_id": "mobile-input-action",
+                "initial_value": "0123456789"
             },
             "label": {
                 "type": "plain_text",
@@ -36,7 +37,8 @@ exports.hView = {
             "block_id": 'blockid-email',
             "element": {
                 "type": "plain_text_input",
-                "action_id": "email-input-action"
+                "action_id": "email-input-action",
+                "initial_value": "a@example.com1"
             },
             "label": {
                 "type": "plain_text",
@@ -49,7 +51,8 @@ exports.hView = {
             "block_id": 'blockid-fname',
             "element": {
                 "type": "plain_text_input",
-                "action_id": "fname-input-action"
+                "action_id": "fname-input-action",
+                "initial_value": "sunnyatexampledotcom"
             },
             "label": {
                 "type": "plain_text",
