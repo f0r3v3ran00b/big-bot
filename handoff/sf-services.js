@@ -22,6 +22,7 @@ class SFRepo {
             await this.login();
             let createLeadResult = await this.conn.sobject("Lead").create(lead);
             console.log("Created lead with record id : " + createLeadResult.id);
+            return createLeadResult.id
         } catch(error) {
             console.log(`Lead creation error: ${error}`);
         }

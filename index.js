@@ -3,6 +3,7 @@ const axios = require('axios');
 const admin = require('firebase-admin');
 const { App, ExpressReceiver } = require("@slack/bolt");
 const { SFRepo } = require('./handoff/sf-services')
+const applicationProperties =require('./application-properties')
 
 const receiver = new ExpressReceiver({ signingSecret: process.env.SLACK_SIGNING_SECRET });
 //const express = require('express')
@@ -90,28 +91,29 @@ app.command("/btc", async ({ command, ack, say }) => {
 
 app.view('h_view', async ({ack, body, view, client, say}) => {
     try {
-        const user = body['user']['id'];
-        //console.log(`h_view submission called...`)
         await ack();
-        const userInfo = await client.users.info({user: user})
+
+        const userWhoSubmittedForm = body['user']['id'];
+
+        const userInfo = await client.users.info({user: userWhoSubmittedForm})
         const userEmail = userInfo.user.profile.email;
+        console.log(`User with email: ${userEmail} submitted the handoff form...`)
         const advisorsTagged = _getAdvisorsTagged(body);
 
-        //console.log(_js(view))
-
         const leadToCreate = _getLeadDetailsFromBody(body)
-        console.log(_js(body))
+        //console.log(_js(body))
         const sfRepo = new SFRepo();
-        await sfRepo.createLead(leadToCreate);
+        let leadId = await sfRepo.createLead(leadToCreate);
 
         console.log(`user info: ${_js(userInfo)}`)
 
         advisorsTagged.forEach((advisorTagged) => {
             client.chat.postMessage({
-                channel: `general`,
+                channel: `${applicationProperties.slackChannelForCreateLeadReplies}`,
                 link_names: 1,
-                text: `<@${advisorTagged}>, you have been tagged :tada:`
+                text: `<@${advisorTagged}>, you have been tagged :tada: A lead with id: ${leadId} has been created!`
             });
+
         })
 
     } catch(err) {
