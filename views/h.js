@@ -1,66 +1,11 @@
 exports.hView = {
     type: 'modal',
     // View identifier
-    callback_id: 'hello_view',
+    callback_id: 'h_view',
     title: {
         type: 'plain_text',
         text: 'Handoff Bot!'
     },
-    /*blocks: [
-        {
-            type: 'input',
-            block_id: 'mobile_block_id',
-            label: {
-                type: 'plain_text',
-                text: 'Mobile Number'
-            },
-            element: {
-                type: 'plain_text_input',
-                action_id: 'mobile_input',
-                multiline: false
-            }
-        },
-        {
-            type: 'input',
-            block_id: 'mobile_block_id',
-            label: {
-                type: 'plain_text',
-                text: 'Mobile Number'
-            },
-            element: {
-                type: 'plain_text_input',
-                action_id: 'mobile_input',
-                multiline: false
-            }
-        },
-        {
-            type: 'input',
-            block_id: 'mobile_block_id',
-            label: {
-                type: 'plain_text',
-                text: 'Mobile Number'
-            },
-            element: {
-                type: 'plain_text_input',
-                action_id: 'mobile_input',
-                multiline: false
-            }
-        },
-        {
-            type: 'input',
-            block_id: 'mobile_block_id',
-            label: {
-                type: 'plain_text',
-                text: 'Mobile Number'
-            },
-            element: {
-                type: 'plain_text_input',
-                action_id: 'mobile_input',
-                multiline: false
-            }
-        }
-
-    ],*/
     blocks: [
         {
             "type": "header",
@@ -75,6 +20,7 @@ exports.hView = {
         },
         {
             "type": "input",
+            "block_id": 'blockid-mobile',
             "element": {
                 "type": "plain_text_input",
                 "action_id": "mobile-input-action"
@@ -87,6 +33,7 @@ exports.hView = {
         },
         {
             "type": "input",
+            "block_id": 'blockid-email',
             "element": {
                 "type": "plain_text_input",
                 "action_id": "email-input-action"
@@ -99,6 +46,7 @@ exports.hView = {
         },
         {
             "type": "input",
+            "block_id": 'blockid-fname',
             "element": {
                 "type": "plain_text_input",
                 "action_id": "fname-input-action"
@@ -111,6 +59,8 @@ exports.hView = {
         },
         {
             "type": "input",
+            "block_id": 'blockid-notes',
+            "optional": true,
             "element": {
                 "type": "plain_text_input",
                 "multiline": true,
@@ -124,6 +74,7 @@ exports.hView = {
         },
         {
             "type": "input",
+            "block_id": 'blockid-date',
             "element": {
                 "type": "datepicker",
                 "initial_date": "1990-04-28",
@@ -142,6 +93,8 @@ exports.hView = {
         },
         {
             "type": "input",
+            "optional": true,
+            "block_id": 'blockid-users',
             "element": {
                 "type": "multi_users_select",
                 "placeholder": {

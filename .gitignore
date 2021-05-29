@@ -1,4 +1,5 @@
 # Logs
+*.fb-keys.json
 logs
 *.log
 npm-debug.log*

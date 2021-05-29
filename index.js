@@ -1,29 +1,38 @@
+const { Command } = require('commander');
 const axios = require('axios');
+const admin = require('firebase-admin');
 const { App, ExpressReceiver } = require("@slack/bolt");
 const receiver = new ExpressReceiver({ signingSecret: process.env.SLACK_SIGNING_SECRET });
+//const express = require('express')
 const dotenv = require("dotenv")
+dotenv.config()
+const port = 3005
+
 const { helloView } = require('./views/hello')
 const { hView } = require('./views/h')
 
-const admin = require('firebase-admin');
-
-const firebaseServiceAccount = JSON.parse(process.env.FIREBASE_SVC_ACCOUNT)
-
-//const serviceAccount = require('./path/to/serviceAccountKey.json');
+let options = _getOptions();
+console.log(`OPTIONS: ${_js(options)}`)
+let firebaseServiceAccount
+if(options.environment === 'dev') {
+    try {
+        firebaseServiceAccount = require('./.fb-keys.json')
+    } catch(error) {
+        console.log(`Error getting firebase service account...`)
+    }
+}
 
 admin.initializeApp({
     credential: admin.credential.cert(firebaseServiceAccount)
 });
-
 const db = admin.firestore();
 console.log(`Firebase initialised...`)
 
-dotenv.config()
 
 const app = new App({
     token: process.env.SLACK_BOT_TOKEN,
-    //signingSecret: process.env.SLACK_SIGNING_SECRET,
-    receiver
+    //receiver
+    signingSecret: process.env.SLACK_SIGNING_SECRET
 });
 
 app.command("/echo", async ({ command, ack, say }) => {
@@ -40,9 +49,7 @@ app.command("/hellomodal", async ({ ack, body, client }) => {
         console.log(JSON.stringify(helloView))
         await ack();
         const result = await client.views.open({
-            // Pass a valid trigger_id within 3 seconds of receiving it
             trigger_id: body.trigger_id,
-            // View payload
             view: helloView
         });
         console.log(result);
@@ -54,12 +61,10 @@ app.command("/hellomodal", async ({ ack, body, client }) => {
 
 app.command("/h", async ({ ack, body, client }) => {
     try {
-        console.log(JSON.stringify(hView))
+        //console.log(JSON.stringify(hView))
         await ack();
         const result = await client.views.open({
-            // Pass a valid trigger_id within 3 seconds of receiving it
             trigger_id: body.trigger_id,
-            // View payload
             view: hView
         });
         console.log(result);
@@ -69,6 +74,34 @@ app.command("/h", async ({ ack, body, client }) => {
     }
 });
 
+app.command("/btc", async ({ command, ack, say }) => {
+    try {
+        await ack();
+        let resp = await axios.get('https://api.coindesk.com/v1/bpi/currentprice.json')
+        btcVal = resp.data.bpi.USD
+        say(`BTC price in USD: $${btcVal.rate}`);
+    } catch (error) {
+        console.log("err")
+        console.error(error);
+    }
+});
+
+app.view('h_view', async ({ack, body, view, client, say}) => {
+    try {
+        console.log(`h_view submission called...`)
+        await ack();
+
+        console.log(_js(view))
+        const user = body['user']['id'];
+        console.log(_js(body))
+        await client.chat.postMessage({
+            channel: user,
+            text: `Thank you!`
+        });
+    } catch(err) {
+        console.error(err)
+    }
+})
 
 app.view('hello_view', async ({ack, body, view, client, say}) => {
     try {
@@ -88,9 +121,6 @@ app.view('hello_view', async ({ack, body, view, client, say}) => {
     }
 })
 
-/*
-Handle button click on the hellomodal
- */
 app.action('button_abc', async (context) => {
     // Acknowledge the action
     try{
@@ -106,19 +136,6 @@ app.action('button_abc', async (context) => {
 });
 
 
-
-app.command("/btc", async ({ command, ack, say }) => {
-    try {
-        await ack();
-        let resp = await axios.get('https://api.coindesk.com/v1/bpi/currentprice.json')
-        btcVal = resp.data.bpi.USD
-        say(`BTC price in USD: $${btcVal.rate}`);
-    } catch (error) {
-        console.log("err")
-        console.error(error);
-    }
-});
-
 app.message('wt', async ({ message, say }) => {
     const data = {
         name: 'Sanjay',
@@ -130,7 +147,6 @@ app.message('wt', async ({ message, say }) => {
     const res = await db.collection('health_test').add(data);
     console.log(`Quote should have been added: ${res.id}`)
 });
-
 
 app.message('knock knock', async ({ message, say }) => {
     await say(`_Who's there?_`);
@@ -145,7 +161,6 @@ app.message('knock knock', async ({ message, say }) => {
     console.log(`Quote should have been added: ${res}`)
 });
 
-
 app.event('app_mention', async ({ event, client, say }) => {
     try {
         say(`Hello 👋. How can I help?`);
@@ -157,20 +172,21 @@ app.event('app_mention', async ({ event, client, say }) => {
 
 });
 
-receiver.router.post('/secret-page', (req, res) => {
-    let resp = {"greeting": `Yay!`}
-    res.send(resp);
-});
-
-receiver.router.get('/', (req, res) => {
-    let resp = {"greeting": `Welcome to the Big Bot home page!`}
-    res.send(resp);
-});
-
 
 (async () => {
-    const port = 3005
-
     await app.start(process.env.PORT || port);
     console.log(`⚡️ Slack Bolt app is running on port ${port}!`);
 })();
+
+
+function _js(jsonData) {
+    return JSON.stringify(jsonData, null, 4);
+}
+
+function _getOptions() {
+    const program = new Command();
+    program.option('-e, --environment <environment>', 'Environment [dev | prod]', 'dev')
+    program.parse(process.argv);
+
+    return program.opts();
+}
