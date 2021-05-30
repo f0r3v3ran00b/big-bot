@@ -29,6 +29,7 @@
   },
   "homepage": "https://github.com/f0r3v3ran00b/big-bot#readme",
   "dependencies": {
+    "@f0r3v3ran00b/nss-utils": "^1.0.0",
     "@slack/bolt": "^3.3.0",
     "axios": "^0.21.1",
     "body-parser": "^1.19.0",

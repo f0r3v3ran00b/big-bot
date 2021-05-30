@@ -7,6 +7,8 @@ const applicationProperties =require('./application-properties')
 const winston = require('winston')
 const { combine, timestamp, label, prettyPrint } = winston.format;
 const faker = require('faker')
+const { helloView } = require('./views/hello')
+const { hView } = require('./views/h')
 
 
 const logger = winston.createLogger({
@@ -35,8 +37,6 @@ const dotenv = require("dotenv")
 dotenv.config()
 const port = 3005
 
-const { helloView } = require('./views/hello')
-const { hView } = require('./views/h')
 
 let options = _getOptions();
 logger.info(`OPTIONS: ${_js(options)}`)
@@ -49,9 +49,7 @@ if(options.environment === 'dev') {
     }
 }
 
-admin.initializeApp({
-    credential: admin.credential.cert(firebaseServiceAccount)
-});
+admin.initializeApp({ credential: admin.credential.cert(firebaseServiceAccount) });
 const db = admin.firestore();
 logger.info(`Firebase initialised...`)
 
@@ -61,6 +59,7 @@ const app = new App({
     //receiver
     signingSecret: process.env.SLACK_SIGNING_SECRET
 });
+
 (async () => {
     await app.start(process.env.PORT || port);
     logger.info(`⚡️ Slack Bolt app is running on port ${port}!`);
@@ -94,7 +93,8 @@ app.view('h_view', async ({ack, body, view, client, say}) => {
 
         //logger.info(_js(body))
         const sfRepo = new SFRepo();
-        let leadId = await sfRepo.createLead(handOffModel.leadDetails);
+        //let leadId = await sfRepo.createLead(handOffModel.leadDetails);
+        let leadId = await sfRepo.createLeadIfNoCurrentMatching(handOffModel.leadDetails);
         let user = await sfRepo.getSFUserFromEmail(taggedAdvisorEmail);
         logger.info(`Found user with id: ${user.Id}`)
 
