@@ -78,6 +78,7 @@ exports.hView = {
         {
             "type": "input",
             "block_id": 'blockid-date',
+            "optional": true,
             "element": {
                 "type": "datepicker",
                 "initial_date": "1990-04-28",
@@ -86,11 +87,30 @@ exports.hView = {
                     "text": "Select a date",
                     "emoji": true
                 },
-                "action_id": "datepicker-action"
+                "action_id": "date-action"
             },
             "label": {
                 "type": "plain_text",
                 "text": "Date",
+                "emoji": true
+            }
+        },
+        {
+            "type": "input",
+            "optional": true,
+            "block_id": "blockid-time",
+            "element": {
+                "type": "timepicker",
+                "placeholder": {
+                    "type": "plain_text",
+                    "text": "Select a time",
+                    "emoji": true
+                },
+                "action_id": "time-action"
+            },
+            "label": {
+                "type": "plain_text",
+                "text": "Time",
                 "emoji": true
             }
         },
