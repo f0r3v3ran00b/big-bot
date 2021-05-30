@@ -4,6 +4,30 @@ const admin = require('firebase-admin');
 const { App, ExpressReceiver } = require("@slack/bolt");
 const { SFRepo } = require('./handoff/sf-services')
 const applicationProperties =require('./application-properties')
+const winston = require('winston')
+const { combine, timestamp, label, prettyPrint } = winston.format;
+const faker = require('faker')
+
+
+const logger = winston.createLogger({
+    level: 'info',
+    format: combine(
+                timestamp(),
+                prettyPrint(),
+                winston.format.colorize()
+            ),
+    defaultMeta: { service: 'bot-service' },
+    transports: [
+        //
+        // - Write all logs with level `error` and below to `error.log`
+        // - Write all logs with level `info` and below to `combined.log`
+        //
+        new winston.transports.File({ filename: 'error.log', level: 'error' }),
+        new winston.transports.File({ filename: 'combined.log' }),
+        new winston.transports.Console({level: 'verbose', format: winston.format.simple()})
+    ],
+})
+
 
 const receiver = new ExpressReceiver({ signingSecret: process.env.SLACK_SIGNING_SECRET });
 //const express = require('express')
@@ -15,13 +39,13 @@ const { helloView } = require('./views/hello')
 const { hView } = require('./views/h')
 
 let options = _getOptions();
-console.log(`OPTIONS: ${_js(options)}`)
+logger.info(`OPTIONS: ${_js(options)}`)
 let firebaseServiceAccount
 if(options.environment === 'dev') {
     try {
         firebaseServiceAccount = require('./.fb-keys.json')
     } catch(error) {
-        console.log(`Error getting firebase service account...`)
+        logger.info(`Error getting firebase service account...`)
     }
 }
 
@@ -29,7 +53,7 @@ admin.initializeApp({
     credential: admin.credential.cert(firebaseServiceAccount)
 });
 const db = admin.firestore();
-console.log(`Firebase initialised...`)
+logger.info(`Firebase initialised...`)
 
 
 const app = new App({
@@ -39,20 +63,19 @@ const app = new App({
 });
 (async () => {
     await app.start(process.env.PORT || port);
-    console.log(`⚡️ Slack Bolt app is running on port ${port}!`);
+    logger.info(`⚡️ Slack Bolt app is running on port ${port}!`);
+    logger.info(`⚡️ Slack Bolt app is running on port ${port}!`);
 })();
 
 
 ///////////////////    START SF INTEGRATION            //////////////////////////////////////////
 app.command("/h", async ({ ack, body, client }) => {
     try {
-        //console.log(JSON.stringify(hView))
         await ack();
         const result = await client.views.open({
             trigger_id: body.trigger_id,
             view: hView
         });
-        //console.log(result);
     }
     catch (error) {
         console.error(error);
@@ -63,47 +86,40 @@ app.view('h_view', async ({ack, body, view, client, say}) => {
     try {
         await ack();
 
-        const userWhoSubmittedForm = body['user']['id'];
+        let handOffModel = transformIncomingRequestToHandOffModel(body);
 
-        const userInfo = await client.users.info({user: userWhoSubmittedForm})
-        const userEmail = userInfo.user.profile.email;
-        console.log(`User with email: ${userEmail} submitted the handoff form...`)
-        const advisorsTaggedIds = _getAdvisorsTagged(body);
+        const advisorsTaggedIds = handOffModel.advisorsTaggedIds
         const taggedAdvisorInfo = await client.users.info({user: advisorsTaggedIds[0]})
         const taggedAdvisorEmail = taggedAdvisorInfo.user.profile.email;
 
-        const leadToCreate = _getLeadDetailsFromBody(body);
-
-        console.log(_js(body))
+        //logger.info(_js(body))
         const sfRepo = new SFRepo();
-        let leadId = await sfRepo.createLead(leadToCreate);
+        let leadId = await sfRepo.createLead(handOffModel.leadDetails);
         let user = await sfRepo.getSFUserFromEmail(taggedAdvisorEmail);
-        console.log(`Found user with id: ${user.Id}`)
+        logger.info(`Found user with id: ${user.Id}`)
 
         const taskToCreate = _getTaskDetailsFromBody(leadId, user.Id, body);
         let taskId = await sfRepo.createTask(taskToCreate);
-        console.log(`Task created: ${taskId}`)
+        logger.info(`Task created: ${taskId}`)
 
-        //console.log(`user info: ${_js(userInfo)}`)
+        // Send out notifications now
         await client.chat.postMessage({
             channel: `${applicationProperties.slackChannelForCreateLeadReplies}`,
             link_names: 1,
-            text: `<@${advisorsTaggedIds[0]}>, you have been tagged :tada: A lead with id: ${leadId} has been created!`
+            text: `<@${handOffModel.advisorsTaggedIds[0]}>, you have been tagged :tada: A lead with id: ${leadId} has been created!`
         });
-
         await client.chat.postMessage({
-            channel: `${advisorsTaggedIds[0]}`,
+            channel: `${handOffModel.advisorsTaggedIds[0]}`,
             link_names: 1,
             text: `
             # Notification:
-            <@${advisorsTaggedIds[0]}>, A handball has been assigned to you :tada: Please view <https://open--uat1.lightning.force.com/lightning/r/User/${taskId}/view|*here*>
+            <@${handOffModel.advisorsTaggedIds[0]}>, A handball has been assigned to you :tada: Please view <https://open--uat1.lightning.force.com/lightning/r/User/${taskId}/view|*here*>
             `
         });
-
         await client.chat.postMessage({
-            channel: `${userWhoSubmittedForm}`,
+            channel: `${handOffModel.handOffInitiator}`,
             link_names: 1,
-            text: `<@${userWhoSubmittedForm}>, A handball call has been created following your request <https://open--uat1.lightning.force.com/lightning/r/User/${taskId}/view|*here*> :tada: Please note that if the student chooses to continue the conversation on chat, you'll need to log the chat conversation in Salesforce in order for the handball callback task to be cancelled.`
+            text: `<@${handOffModel.handOffInitiator}>, A handball call has been created following your request <https://open--uat1.lightning.force.com/lightning/r/User/${taskId}/view|*here*> :tada: Please note that if the student chooses to continue the conversation on chat, you'll need to log the chat conversation in Salesforce in order for the handball callback task to be cancelled.`
         });
     } catch(err) {
         console.error(err)
@@ -137,13 +153,13 @@ app.command("/echo", async ({ command, ack, say }) => {
 
 app.command("/hellomodal", async ({ ack, body, client }) => {
     try {
-        console.log(JSON.stringify(helloView))
+        logger.info(JSON.stringify(helloView))
         await ack();
         const result = await client.views.open({
             trigger_id: body.trigger_id,
             view: helloView
         });
-        console.log(result);
+        logger.info(result);
     }
     catch (error) {
         console.error(error);
@@ -154,9 +170,9 @@ app.view('hello_view', async ({ack, body, view, client, say}) => {
     try {
 
         await ack();
-        console.log(JSON.stringify(view))
+        logger.info(JSON.stringify(view))
         const user = body['user']['id'];
-        console.log(JSON.stringify(body))
+        logger.info(JSON.stringify(body))
         const val = view['state']['values']['input_c']['dreamy_input']['value'];
         await client.chat.postMessage({
             channel: user,
@@ -182,7 +198,7 @@ app.command("/btc", async ({ command, ack, say }) => {
         btcVal = resp.data.bpi.USD
         say(`BTC price in USD: $${btcVal.rate}`);
     } catch (error) {
-        console.log("err")
+        logger.info("err")
         console.error(error);
     }
 });
@@ -206,11 +222,11 @@ app.message('wt', async ({ message, say }) => {
         name: 'Sanjay',
         weight: 74
     };
-    console.log(`Full message: ${message.text}`)
+    logger.info(`Full message: ${message.text}`)
 
 // Add a new document in collection "cities" with ID 'LA'
     const res = await db.collection('health_test').add(data);
-    console.log(`Quote should have been added: ${res.id}`)
+    logger.info(`Quote should have been added: ${res.id}`)
 });
 
 app.message('knock knock', async ({ message, say }) => {
@@ -223,7 +239,7 @@ app.message('knock knock', async ({ message, say }) => {
 
 // Add a new document in collection "cities" with ID 'LA'
     const res = await db.collection('people').doc('sanjay').set(data);
-    console.log(`Quote should have been added: ${res}`)
+    logger.info(`Quote should have been added: ${res}`)
 });
 
 app.event('app_mention', async ({ event, client, say }) => {
@@ -296,6 +312,23 @@ function _getTaskDetailsFromBody(leadId, advisorToAssignTo, body) {
 
 function _getSFDateTimeFromIncoming(date, time) {
     if(!date || !time) return null
-    console.log(`Returning datetime: ${`${date}T${time}:00+10:00`}`)
+    logger.info(`Returning datetime: ${`${date}T${time}:00+10:00`}`)
     return `${date}T${time}:00+10:00`
+}
+
+function transformIncomingRequestToHandOffModel(body) {
+    let handOffModel = {};
+
+    handOffModel['advisorsTaggedIds'] = body['view']['state']['values']['blockid-users']['users-select-action']['selected_users'];
+    handOffModel['handOffInitiator'] = body['user']['id'];
+    handOffModel['leadDetails'] = {
+        mobilePhone : body['view']['state']['values']['blockid-mobile']['mobile-input-action']['value'],
+        email : body['view']['state']['values']['blockid-email']['email-input-action']['value'],
+        firstName : body['view']['state']['values']['blockid-fname']['fname-input-action']['value'],
+        lastName : `${faker.name.lastName()}`,
+        leadSource : 'Manual',
+        lead_Sub_Source__c : 'Livechat'
+    }
+
+    return handOffModel;
 }

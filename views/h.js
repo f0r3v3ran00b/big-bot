@@ -1,3 +1,4 @@
+const faker = require('faker')
 exports.hView = {
     type: 'modal',
     // View identifier
@@ -38,7 +39,7 @@ exports.hView = {
             "element": {
                 "type": "plain_text_input",
                 "action_id": "email-input-action",
-                "initial_value": "a@example.com1"
+                "initial_value": `${faker.internet.email()}`
             },
             "label": {
                 "type": "plain_text",
@@ -52,7 +53,7 @@ exports.hView = {
             "element": {
                 "type": "plain_text_input",
                 "action_id": "fname-input-action",
-                "initial_value": "sunnyatexampledotcom"
+                "initial_value": `${faker.name.findName()}`
             },
             "label": {
                 "type": "plain_text",
@@ -67,7 +68,8 @@ exports.hView = {
             "element": {
                 "type": "plain_text_input",
                 "multiline": true,
-                "action_id": "notes-input-action"
+                "action_id": "notes-input-action",
+                "initial_value": `${faker.lorem.paragraph()}`
             },
             "label": {
                 "type": "plain_text",
@@ -81,7 +83,7 @@ exports.hView = {
             "optional": true,
             "element": {
                 "type": "datepicker",
-                "initial_date": "1990-04-28",
+                "initial_date": "2021-08-15",
                 "placeholder": {
                     "type": "plain_text",
                     "text": "Select a date",
@@ -101,6 +103,7 @@ exports.hView = {
             "block_id": "blockid-time",
             "element": {
                 "type": "timepicker",
+                "initial_time": "17:00",
                 "placeholder": {
                     "type": "plain_text",
                     "text": "Select a time",
