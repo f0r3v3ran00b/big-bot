@@ -1,8 +1,11 @@
 const applicationProperties =require('../application-properties')
+const { SFRepo } = require('../handoff/sf-repo')
 
 class HandOffService {
 
-    constructor() {}
+    constructor() {
+        this.sfRepo = new SFRepo();
+    }
 
     async getAdvisorToAssignTaskTo(client, handOffModel) {
         let advisorsTaggedIds = handOffModel.advisorsTaggedIds;
@@ -11,6 +14,11 @@ class HandOffService {
             const taggedAdvisorEmail = taggedAdvisorInfo.user.profile.email;
             return taggedAdvisorEmail;
         }
+    }
+
+    async assignTaskToAdvisor(task, lead, user, handOffModel) {
+        let createdTaskid = await this.sfRepo.createTask(task);
+        return createdTaskid;
     }
 
     async sendNotifications({client, handOffInitiatorId, assignedAdvisorId, leadId, taskId}) {
@@ -42,6 +50,7 @@ class HandOffService {
             link_names: 1,
             text: `<@${handOffInitiatorId}>, A handball call has been created following your request <https://open--uat1.lightning.force.com/lightning/r/User/${taskId}/view|*here*> :tada: Please note that if the student chooses to continue the conversation on chat, you'll need to log the chat conversation in Salesforce in order for the handball callback task to be cancelled.`
         });
+        console.log(`Notifications sent...`)
     }
 }
 

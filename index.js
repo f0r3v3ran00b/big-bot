@@ -85,50 +85,24 @@ app.command("/h", async ({ ack, body, client }) => {
 app.view('h_view', async ({ack, body, view, client, say}) => {
     try {
         await ack();
+        const sfRepo = new SFRepo();
 
         let handOffModel = await transformIncomingRequestToHandOffModel(client, body);
-        console.log(`ADVISORS TAGGED: ${handOffModel.advisorsTaggedIds[0]}`)
-/*
-        const advisorsTaggedIds = handOffModel.advisorsTaggedIds
-        const taggedAdvisorInfo = await client.users.info({user: advisorsTaggedIds[0]})
-        const taggedAdvisorEmail = taggedAdvisorInfo.user.profile.email;
-*/
         const handOffService = new HandOffService();
         let emailOfAdvisorToAssignTaskTo = await handOffService.getAdvisorToAssignTaskTo(client, handOffModel);
-        //logger.info(_js(body))
-        const sfRepo = new SFRepo();
-        //let leadId = await sfRepo.createLead(handOffModel.leadDetails);
-        let leadId = await sfRepo.createLeadIfNoCurrentMatchingLeadsFound(handOffModel.leadDetails);
         let user = await sfRepo.getSFUserFromEmail(emailOfAdvisorToAssignTaskTo);
+
+        let leadId = await sfRepo.createLeadIfNoCurrentMatchingLeadsFound(handOffModel.leadDetails);
         logger.info(`Found user with id: ${user.Id}`)
 
         const taskToCreate = _getTaskDetailsFromBody(leadId, user.Id, body);
-        let taskId = await sfRepo.createTask(taskToCreate);
-        logger.info(`Task created: ${taskId}`)
+        let createdTaskId = await handOffService.assignTaskToAdvisor(taskToCreate)
+        //let taskId = await sfRepo.createTask(taskToCreate);
+        logger.info(`Task created: ${createdTaskId}`)
 
-        // Send out notifications now (these shoulds probably go into a services class
-        let notificationsData = { client: client, handOffInitiatorId: handOffModel.handOffInitiator.id, assignedAdvisorId: handOffModel.advisorsTaggedIds[0], leadId: leadId, taskId: taskId };
+        // Send out notifications now
+        let notificationsData = { client: client, handOffInitiatorId: handOffModel.handOffInitiator.id, assignedAdvisorId: handOffModel.advisorsTaggedIds[0], leadId: leadId, taskId: createdTaskId };
         await handOffService.sendNotifications(notificationsData);
-/*
-        await client.chat.postMessage({
-            channel: `${applicationProperties.slackChannelForCreateLeadReplies}`,
-            link_names: 1,
-            text: `<@${handOffModel.advisorsTaggedIds[0]}>, you have been tagged :tada: A lead with id: ${leadId} has been created!`
-        });
-        await client.chat.postMessage({
-            channel: `${handOffModel.advisorsTaggedIds[0]}`,
-            link_names: 1,
-            text: `
-            # Notification:
-            <@${handOffModel.advisorsTaggedIds[0]}>, A handball has been assigned to you :tada: Please view <https://open--uat1.lightning.force.com/lightning/r/User/${taskId}/view|*here*>
-            `
-        });
-        await client.chat.postMessage({
-            channel: `${handOffModel.handOffInitiator}`,
-            link_names: 1,
-            text: `<@${handOffModel.handOffInitiator}>, A handball call has been created following your request <https://open--uat1.lightning.force.com/lightning/r/User/${taskId}/view|*here*> :tada: Please note that if the student chooses to continue the conversation on chat, you'll need to log the chat conversation in Salesforce in order for the handball callback task to be cancelled.`
-        });
-*/
     } catch(err) {
         console.error(err)
     }
