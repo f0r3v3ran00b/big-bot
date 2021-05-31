@@ -86,16 +86,17 @@ app.view('h_view', async ({ack, body, view, client, say}) => {
     try {
         await ack();
         const sfRepo = new SFRepo();
+        const handOffService = new HandOffService();
 
         let handOffModel = await transformIncomingRequestToHandOffModel(client, body);
-        const handOffService = new HandOffService();
-        let emailOfAdvisorToAssignTaskTo = await handOffService.getAdvisorToAssignTaskTo(client, handOffModel);
-        let user = await sfRepo.getSFUserFromEmail(emailOfAdvisorToAssignTaskTo);
+        //let emailOfAdvisorToAssignTaskTo = await handOffService.getAdvisorToAssignTaskTo(client, handOffModel);
+        //let user = await sfRepo.getSFUserFromEmail(emailOfAdvisorToAssignTaskTo);
+        let advisorSFUserId = await handOffService.getAdvisorToAssignTaskTo(client, handOffModel);
 
-        let leadId = await sfRepo.createLeadIfNoCurrentMatchingLeadsFound(handOffModel.leadDetails);
-        logger.info(`Found user with id: ${user.Id}`)
+        let leadId = await handOffService.createLeadIfNoCurrentMatchingLeadsFound(handOffModel.leadDetails);
+        //logger.info(`Found user with id: ${user.Id}`)
 
-        const taskToCreate = _getTaskDetailsFromBody(leadId, user.Id, body);
+        const taskToCreate = _getTaskDetailsFromBody(leadId, advisorSFUserId, body);
         let createdTaskId = await handOffService.assignTaskToAdvisor(taskToCreate)
         //let taskId = await sfRepo.createTask(taskToCreate);
         logger.info(`Task created: ${createdTaskId}`)

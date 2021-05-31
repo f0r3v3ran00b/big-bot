@@ -7,6 +7,7 @@ class HandOffService {
         this.sfRepo = new SFRepo();
     }
 
+/*
     async getAdvisorToAssignTaskTo(client, handOffModel) {
         let advisorsTaggedIds = handOffModel.advisorsTaggedIds;
         if(advisorsTaggedIds.length > 0) {
@@ -15,10 +16,28 @@ class HandOffService {
             return taggedAdvisorEmail;
         }
     }
+*/
+
+    async getAdvisorToAssignTaskTo(client, handOffModel) {
+        let advisorsTaggedIds = handOffModel.advisorsTaggedIds;
+        if(advisorsTaggedIds.length > 0) { // If chat advisor tagged a specific advisor
+            const taggedAdvisorInfo = await client.users.info({user: advisorsTaggedIds[0]})
+            const taggedAdvisorEmail = taggedAdvisorInfo.user.profile.email;
+
+            // Now from this email, get SF userId
+            let advisorSFUserId = await this.sfRepo.getSFUserFromEmail(taggedAdvisorEmail);
+            return advisorSFUserId;
+        }
+    }
 
     async assignTaskToAdvisor(task, lead, user, handOffModel) {
         let createdTaskid = await this.sfRepo.createTask(task);
         return createdTaskid;
+    }
+
+    async createLeadIfNoCurrentMatchingLeadsFound(leadDetails) {
+        let leadId = await this.sfRepo.createLeadIfNoCurrentMatchingLeadsFound(leadDetails);
+        return leadId;
     }
 
     async sendNotifications({client, handOffInitiatorId, assignedAdvisorId, leadId, taskId}) {
