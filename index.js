@@ -2,7 +2,8 @@ const { Command } = require('commander');
 const axios = require('axios');
 const admin = require('firebase-admin');
 const { App, ExpressReceiver } = require("@slack/bolt");
-const { SFRepo } = require('./handoff/sf-services')
+const { SFRepo } = require('./handoff/sf-repo')
+const { HandOffService } = require('./handoff/handoff-service')
 const applicationProperties =require('./application-properties')
 const winston = require('winston')
 const { combine, timestamp, label, prettyPrint } = winston.format;
@@ -85,24 +86,30 @@ app.view('h_view', async ({ack, body, view, client, say}) => {
     try {
         await ack();
 
-        let handOffModel = transformIncomingRequestToHandOffModel(body);
-
+        let handOffModel = await transformIncomingRequestToHandOffModel(client, body);
+        console.log(`ADVISORS TAGGED: ${handOffModel.advisorsTaggedIds[0]}`)
+/*
         const advisorsTaggedIds = handOffModel.advisorsTaggedIds
         const taggedAdvisorInfo = await client.users.info({user: advisorsTaggedIds[0]})
         const taggedAdvisorEmail = taggedAdvisorInfo.user.profile.email;
-
+*/
+        const handOffService = new HandOffService();
+        let emailOfAdvisorToAssignTaskTo = await handOffService.getAdvisorToAssignTaskTo(client, handOffModel);
         //logger.info(_js(body))
         const sfRepo = new SFRepo();
         //let leadId = await sfRepo.createLead(handOffModel.leadDetails);
-        let leadId = await sfRepo.createLeadIfNoCurrentMatching(handOffModel.leadDetails);
-        let user = await sfRepo.getSFUserFromEmail(taggedAdvisorEmail);
+        let leadId = await sfRepo.createLeadIfNoCurrentMatchingLeadsFound(handOffModel.leadDetails);
+        let user = await sfRepo.getSFUserFromEmail(emailOfAdvisorToAssignTaskTo);
         logger.info(`Found user with id: ${user.Id}`)
 
         const taskToCreate = _getTaskDetailsFromBody(leadId, user.Id, body);
         let taskId = await sfRepo.createTask(taskToCreate);
         logger.info(`Task created: ${taskId}`)
 
-        // Send out notifications now
+        // Send out notifications now (these shoulds probably go into a services class
+        let notificationsData = { client: client, handOffInitiatorId: handOffModel.handOffInitiator.id, assignedAdvisorId: handOffModel.advisorsTaggedIds[0], leadId: leadId, taskId: taskId };
+        await handOffService.sendNotifications(notificationsData);
+/*
         await client.chat.postMessage({
             channel: `${applicationProperties.slackChannelForCreateLeadReplies}`,
             link_names: 1,
@@ -121,6 +128,7 @@ app.view('h_view', async ({ack, body, view, client, say}) => {
             link_names: 1,
             text: `<@${handOffModel.handOffInitiator}>, A handball call has been created following your request <https://open--uat1.lightning.force.com/lightning/r/User/${taskId}/view|*here*> :tada: Please note that if the student chooses to continue the conversation on chat, you'll need to log the chat conversation in Salesforce in order for the handball callback task to be cancelled.`
         });
+*/
     } catch(err) {
         console.error(err)
     }
@@ -316,11 +324,13 @@ function _getSFDateTimeFromIncoming(date, time) {
     return `${date}T${time}:00+10:00`
 }
 
-function transformIncomingRequestToHandOffModel(body) {
+async function transformIncomingRequestToHandOffModel(client, body) {
     let handOffModel = {};
 
+    const handOffInitiatorInfo = await client.users.info({user: body['user']['id']})
+    logger.info(`Handoff initiator info: ${_js(handOffInitiatorInfo)}`)
+    handOffModel['handOffInitiator'] = handOffInitiatorInfo.user;
     handOffModel['advisorsTaggedIds'] = body['view']['state']['values']['blockid-users']['users-select-action']['selected_users'];
-    handOffModel['handOffInitiator'] = body['user']['id'];
     handOffModel['leadDetails'] = {
         mobilePhone : body['view']['state']['values']['blockid-mobile']['mobile-input-action']['value'],
         email : body['view']['state']['values']['blockid-email']['email-input-action']['value'],

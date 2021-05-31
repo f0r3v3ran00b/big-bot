@@ -28,20 +28,15 @@ class SFRepo {
         }
     }
 
-    async createLeadIfNoCurrentMatching(lead) {
+    async createLeadIfNoCurrentMatchingLeadsFound(lead) {
         try {
             await this.login();
             let records = [];
             records = await this.conn.sobject("Lead")
-                .find(
-                    {
-                        firstName: lead.firstName,
-                        mobilePhone: lead.mobilePhone,
-                        email: lead.email
-                    }, ['Id', 'firstName', 'mobilePhone', 'email'])
+                .find({firstName: lead.firstName, mobilePhone: lead.mobilePhone, email: lead.email }, ['Id', 'firstName', 'mobilePhone', 'email'])
                 .execute();
             console.log(`current leads found: ${JSON.stringify(records)}`)
-            // Return early
+            // Return early if existing matching leads found
             if(records.length > 0) {
                 console.log(`Returning the id of first matching lead: ${records[0].Id}`)
                 return records[0].Id
